@@ -1,0 +1,21 @@
+[package]
+name = "watch-sign"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+isideload = { path = "vendor/isideload/isideload", default-features = false, features = ["install", "tokio-mt", "fs-storage"] }
+idevice = { version = "0.1.65", default-features = false, features = ["usbmuxd", "ring", "afc", "installation_proxy", "remote_pairing", "rsd", "companion_proxy", "pair"] }
+tokio = { version = "1.49", features = ["rt-multi-thread", "macros"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "tls12", "std"] }
+rpassword = "7"
+plist = "1.8"
+zip = { version = "8", default-features = false, features = ["deflate"] }
+rootcause = "0.12"
+
+# GitHub git protocol is unreachable from this machine; use the exact commit
+# pinned by the iloader fork's Cargo.lock (5da0b8d), downloaded as a tarball.
+[patch."https://github.com/nab138/apple-crates"]
+apple-codesign = { path = "vendor/apple-crates/apple-codesign-quick" }

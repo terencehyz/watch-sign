@@ -1,0 +1,7 @@
+/target
+/signed-out
+
+# local-only content (not part of the published project)
+/xhs-tutorial
+/.workbuddy
+/.Trash-0
