@@ -8,7 +8,7 @@
 
 use std::path::{Path, PathBuf};
 
-use idevice::usbmuxd::{UsbmuxdAddr, UsbmuxdConnection};
+use idevice::usbmuxd::{Connection, UsbmuxdAddr, UsbmuxdConnection};
 use isideload::{
     anisette::remote_v3::{DEFAULT_ANISETTE_V3_URL, RemoteV3AnisetteProvider},
     auth::apple_account::{AppleAccount, TwoFactorCallbackParams, TwoFactorCallbackResponse},
@@ -280,10 +280,24 @@ async fn main() -> Result<(), Report> {
     if devices.is_empty() {
         bail!("No iPhone found over USB. Connect the paired iPhone, unlock it, and trust this computer.");
     }
-    let provider = devices
-        .first()
-        .unwrap()
-        .to_provider(UsbmuxdAddr::from_env_var().context("usbmuxd address")?, "watch-sign");
+    // macOS usbmuxd also lists Wi-Fi-paired devices; installs must go over the
+    // cable, so prefer a USB entry over a network one.
+    let device = devices
+        .iter()
+        .find(|device| device.connection_type == Connection::Usb)
+        .or_else(|| devices.first())
+        .unwrap();
+    if device.connection_type != Connection::Usb {
+        println!(
+            "Warning: no USB connection for {} (using {:?}); installs may be slow or fail. Plug in the cable.",
+            device.udid, device.connection_type
+        );
+    }
+    println!("Using device {} ({:?})", device.udid, device.connection_type);
+    let provider = device.to_provider(
+        UsbmuxdAddr::from_env_var().context("usbmuxd address")?,
+        "watch-sign",
+    );
 
     let cert_selection_prompt = |certs: &Vec<DevelopmentCertificate>| {
         println!("Maximum number of development certificates reached. Select certificates to revoke:");
